@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forum Komunitas - SIM Al-Qur'an</title>
+  
+  <!-- Menggunakan SweetAlert2 untuk Notifikasi yang Elegan -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <style>
+    :root {
+      --primary-color: #15803d; /* Warna hijau khas aplikasi SIM */
+      --secondary-color: #0b3d2c;
+      --bg-color: #f4f7f6;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+
+    button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #166534;
+    }
+
+    .btn-danger {
+      background-color: #dc2626;
+    }
+    .btn-danger:hover {
+      background-color: #b91c1c;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 0 15px;
+    }
+
+    /* Form Styles */
+    .card {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-family: inherit;
+    }
+
+    /* Post Styles */
+    .post-item {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+      background: #fff;
+    }
+
+    .post-header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+    }
+
+    .post-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: var(--primary-color);
+      margin: 0;
+    }
+
+    .post-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .badge {
+      background: #dcfce7;
+      color: #166534;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    /* Comments Styles */
+    .comment-section {
+      margin-top: 15px;
+      background: #f8fafc;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .comment-item {
+      border-bottom: 1px solid #e2e8f0;
+      padding: 8px 0;
+      font-size: 0.9rem;
+    }
+
+    .comment-item:last-child {
+      border-bottom: none;
+    }
+
+    .comment-meta {
+      font-weight: bold;
+      font-size: 0.8rem;
+      color: var(--secondary-color);
+    }
+
+    .reply-box {
+      display: flex;
+      margin-top: 10px;
+      gap: 10px;
+    }
+
+    .reply-box input {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+    }
+
+    /* Utility */
+    .hidden {
+      display: none !important;
+    }
+
+    .loading-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading Indicator -->
+  <div id="loader" class="loading-overlay hidden">Sedang memproses data...</div>
+
+  <!-- Header -->
+  <header>
+    <h1>SIM Al-Qur'an - Forum</h1>
+    <div id="user-info" class="hidden">
+      <span id="user-name-display" style="margin-right: 15px; font-weight: 600;"></span>
+      <button class="btn-danger" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <div class="container">
+    
+    <!-- Bagian Login -->
+    <div id="login-section" class="card">
+      <h2 style="margin-top: 0; color: var(--primary-color);">Masuk ke Sistem</h2>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Gunakan username dan password SIM Anda untuk mengakses forum.</p>
+      
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="username" required placeholder="Masukkan username">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="password" required placeholder="Masukkan password">
+        </div>
+        <button type="submit" style="width: 100%;">Login Sekarang</button>
+      </form>
+    </div>
+
+    <!-- Bagian Utama Forum -->
+    <div id="forum-section" class="hidden">
+      
+      <!-- Buat Post Baru -->
+      <div class="card">
+        <h3 style="margin-top: 0;">Buat Diskusi Baru</h3>
+        <form id="post-form" onsubmit="handleCreatePost(event)">
+          <div class="form-group">
+            <label>Judul Diskusi</label>
+            <input type="text" id="post-title" required placeholder="Apa yang ingin Anda diskusikan?">
+          </div>
+          <div class="form-group">
+            <label>Kategori</label>
+            <select id="post-category">
+              <option value="Tanya Jawab">Tanya Jawab</option>
+              <option value="Informasi">Informasi</option>
+              <option value="Diskusi Umum">Diskusi Umum</option>
+              <option value="Evaluasi">Evaluasi</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Konten Diskusi</label>
+            <textarea id="post-content" rows="4" required placeholder="Jelaskan lebih detail di sini..."></textarea>
+          </div>
+          <button type="submit">Publikasikan</button>
+        </form>
+      </div>
+
+      <!-- Feed Postingan -->
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h3>Daftar Diskusi</h3>
+          <button onclick="loadPosts()" style="padding: 5px 10px; font-size: 0.8rem;">Muat Ulang 🔄</button>
+        </div>
+        
+        <div id="posts-container">
+          <!-- Postingan akan dirender di sini via JS -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // ========================================================
+    // KONFIGURASI API
+    // GANTI URL DI BAWAH INI DENGAN WEB APP URL GOOGLE APPS SCRIPT ANDA
+    // ========================================================
+    const GAS_API_URL = "MASUKKAN_URL_WEB_APP_GAS_DI_SINI";
+    
+    // Variabel state global
+    let currentUser = null;
+
+    // Inisialisasi Aplikasi
+    document.addEventListener("DOMContentLoaded", () => {
+      const savedUser = localStorage.getItem('forum_user');
+      if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        showForum();
+      } else {
+        showLogin();
+      }
+    });
+
+    // --- Helper Functions ---
+    const showLoader = () => document.getElementById('loader').classList.remove('hidden');
+    const hideLoader = () => document.getElementById('loader').classList.add('hidden');
+
+    function formatDate(isoString) {
+      const date = new Date(isoString);
+      return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit' });
+    }
+
+    /**
+     * Universal Fetch Wrapper untuk Web App GAS
+     * Menggunakan POST text/plain untuk bypass standard preflight CORS di GAS
+     */
+    async function fetchGasApi(payload) {
+      try {
+        const response = await fetch(GAS_API_URL, {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        return await response.json();
+      } catch (error) {
+        console.error("API Error:", error);
+        return { success: false, message: "Koneksi ke server terputus. Periksa jaringan Anda." };
+      }
+    }
+
+    // --- UI State Management ---
+    function showLogin() {
+      document.getElementById('login-section').classList.remove('hidden');
+      document.getElementById('forum-section').classList.add('hidden');
+      document.getElementById('user-info').classList.add('hidden');
+    }
+
+    function showForum() {
+      document.getElementById('login-section').classList.add('hidden');
+      document.getElementById('forum-section').classList.remove('hidden');
+      document.getElementById('user-info').classList.remove('hidden');
+      document.getElementById('user-name-display').innerText = `Halo, ${currentUser.nama_user}`;
+      loadPosts(); // Load data saat masuk
+    }
+
+    function logout() {
+      Swal.fire({
+        title: 'Yakin ingin keluar?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#15803d',
+        cancelButtonColor: '#dc2626',
+        confirmButtonText: 'Ya, Keluar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          localStorage.removeItem('forum_user');
+          currentUser = null;
+          showLogin();
+        }
+      });
+    }
+
+    // --- API Handlers ---
+
+    // 1. Proses Login
+    async function handleLogin(e) {
+      e.preventDefault();
+      const userVal = document.getElementById('username').value;
+      const passVal = document.getElementById('password').value;
+
+      showLoader();
+      const res = await fetchGasApi({ action: 'login', username: userVal, password: passVal });
+      hideLoader();
+
+      if (res.success) {
+        currentUser = res.user;
+        localStorage.setItem('forum_user', JSON.stringify(currentUser));
+        Swal.fire('Berhasil!', `Selamat datang, ${currentUser.nama_user}`, 'success');
+        showForum();
+      } else {
+        Swal.fire('Gagal Login', res.message, 'error');
+      }
+    }
+
+    // 2. Load Semua Posts
+    async function loadPosts() {
+      showLoader();
+      const res = await fetchGasApi({ action: 'getPosts' });
+      hideLoader();
+
+      const container = document.getElementById('posts-container');
+      container.innerHTML = '';
+
+      if (res.success && res.data.length > 0) {
+        res.data.forEach(post => {
+          container.appendChild(createPostElement(post));
+        });
+      } else {
+        container.innerHTML = '<div class="card" style="text-align:center; color:#64748b;">Belum ada diskusi. Jadilah yang pertama!</div>';
+      }
+    }
+
+    // 3. Buat Post Baru
+    async function handleCreatePost(e) {
+      e.preventDefault();
+      if (!currentUser) return;
+
+      const title = document.getElementById('post-title').value;
+      const category = document.getElementById('post-category').value;
+      const content = document.getElementById('post-content').value;
+
+      showLoader();
+      const res = await fetchGasApi({
+        action: 'createPost',
+        user_id: currentUser.user_id,
+        nama_user: currentUser.nama_user,
+        judul: title,
+        kategori: category,
+        konten: content
+      });
+      hideLoader();
+
+      if (res.success) {
+        document.getElementById('post-form').reset();
+        Swal.fire('Sukses', 'Diskusi baru berhasil dipublikasikan!', 'success');
+        loadPosts(); // Refresh list
+      } else {
+        Swal.fire('Gagal', res.message, 'error');
+      }
+    }
+
+    // 4. Load Komentar
+    async function toggleComments(postId) {
+      const commentDiv = document.getElementById(`comments-${postId}`);
+      
+      // Jika sedang terbuka, tutup
+      if (!commentDiv.classList.contains('hidden')) {
+        commentDiv.classList.add('hidden');
+        return;
+      }
+
+      // Jika belum dimuat, ambil dari server
+      commentDiv.classList.remove('hidden');
+      commentDiv.innerHTML = '<div style="text-align:center; font-size:0.8rem;">Memuat komentar...</div>';
+
+      const res = await fetchGasApi({ action: 'getComments', post_id: postId });
+      
+      let html = '';
+      if (res.success && res.data.length > 0) {
+        res.data.forEach(c => {
+          html += `
+            <div class="comment-item">
+              <span class="comment-meta">${c.nama_user}</span> <span style="font-size:0.7rem; color:#64748b;">(${formatDate(c.timestamp)})</span><br>
+              ${c.komentar}
+            </div>
+          `;
+        });
+      } else {
+        html = '<div style="font-size:0.85rem; color:#64748b; font-style:italic;">Belum ada komentar.</div>';
+      }
+
+      // Tambahkan Form Reply
+      html += `
+        <div class="reply-box">
+          <input type="text" id="reply-input-${postId}" placeholder="Tulis komentar...">
+          <button onclick="submitComment('${postId}')" style="padding: 8px 12px; font-size: 0.8rem;">Kirim</button>
+        </div>
+      `;
+
+      commentDiv.innerHTML = html;
+    }
+
+    // 5. Submit Komentar
+    async function submitComment(postId) {
+      const inputEl = document.getElementById(`reply-input-${postId}`);
+      const text = inputEl.value.trim();
+      
+      if (!text) return Swal.fire('Peringatan', 'Komentar tidak boleh kosong!', 'warning');
+
+      showLoader();
+      const res = await fetchGasApi({
+        action: 'addComment',
+        post_id: postId,
+        user_id: currentUser.user_id,
+        nama_user: currentUser.nama_user,
+        komentar: text
+      });
+      hideLoader();
+
+      if (res.success) {
+        // Refresh komentar
+        const commentDiv = document.getElementById(`comments-${postId}`);
+        commentDiv.classList.add('hidden'); 
+        toggleComments(postId); // re-trigger fetch
+      } else {
+        Swal.fire('Gagal', res.message, 'error');
+      }
+    }
+
+    // --- DOM Builders ---
+    function createPostElement(post) {
+      const div = document.createElement('div');
+      div.className = 'post-item';
+      div.innerHTML = `
+        <div class="post-header">
+          <div>
+            <h4 class="post-title">${post.judul}</h4>
+            <div class="post-meta">Oleh <b>${post.nama_user}</b> • ${formatDate(post.timestamp)}</div>
+          </div>
+          <div>
+            <span class="badge">${post.kategori}</span>
+          </div>
+        </div>
+        <div style="margin-bottom: 15px; line-height: 1.5; font-size: 0.95rem;">
+          ${post.konten.replace(/\n/g, '<br>')}
+        </div>
+        <button onclick="toggleComments('${post.id}')" style="background:#e2e8f0; color:#334155; padding: 5px 12px; font-size:0.8rem;">💬 Lihat Diskusi</button>
+        
+        <!-- Wadah Komentar -->
+        <div id="comments-${post.id}" class="comment-section hidden"></div>
+      `;
+      return div;
+    }
+
+  </script>
+</body>
+</html>
